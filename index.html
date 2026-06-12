@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sweet EV Rides — Client P&L Model</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --green: #16a34a;
+    --red: #dc2626;
+    --amber-bg: #fef3c7;
+    --amber-text: #92400e;
+    --amber-border: #fcd34d;
+    --accent: #111827;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+    line-height: 1.45;
+  }
+  .container { max-width: 1140px; margin: 0 auto; }
+  header { margin-bottom: 16px; }
+  header h1 { font-size: 22px; font-weight: 700; }
+  header p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 16px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .field .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  input[type="text"], input[type="number"], select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--text);
+  }
+  input:focus, select:focus { outline: 2px solid #c7d2fe; border-color: #a5b4fc; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  .slider-val { font-size: 13px; font-weight: 600; min-width: 44px; text-align: right; }
+
+  .seg {
+    display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content;
+  }
+  .seg button {
+    background: #fff; color: var(--text); border: none; border-right: 1px solid var(--border);
+    padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 0;
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button.active { background: var(--accent); color: #fff; }
+
+  .toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .toggle-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+  .toggle-row label { font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  .stat .value { font-size: 19px; font-weight: 700; margin-top: 4px; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+
+  .banner {
+    background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text);
+    border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: 600; margin: 14px 0 0;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+  tr.totals td { font-weight: 700; border-top: 2px solid var(--text); border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  details summary { cursor: pointer; font-size: 14px; font-weight: 600; padding: 4px 0; user-select: none; }
+  details[open] summary { margin-bottom: 12px; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  button {
+    padding: 10px 18px; border: 1px solid var(--accent); border-radius: 6px;
+    font-size: 14px; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff;
+  }
+  button.secondary { background: #fff; color: var(--accent); }
+  button:hover { opacity: 0.88; }
+  #copyMsg { font-size: 13px; color: var(--green); align-self: center; display: none; }
+
+  .disclaimer {
+    margin-top: 20px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px;
+    background: #fff; font-size: 12px; color: var(--muted);
+  }
+  .disclaimer strong { color: var(--text); }
+
+  .hidden { display: none !important; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .actions, #copyMsg { display: none !important; }
+    .card, .stat, .disclaimer { border-color: #ccc; break-inside: avoid; }
+    details { display: block; }
+    details summary { display: none; }
+    .banner { border-color: #999; }
+    .disclaimer { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Sweet EV Rides — Client P&L Model</h1>
+    <p id="clientLine">Illustrative profit and loss projection</p>
+  </header>
+
+  <!-- CLIENT TYPE -->
+  <div class="card">
+    <h2>Client Type</h2>
+    <div class="seg" id="typeSeg">
+      <button data-type="investor" class="active">Investor</button>
+      <button data-type="driver">Driver</button>
+      <button data-type="vip">VIP / DFY Student</button>
+    </div>
+    <div class="hint" id="typeHint" style="font-size:12px; color:var(--muted); margin-top:8px;"></div>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid" id="summary">
+    <div class="stat"><div class="label">Annual Revenue</div><div class="value" id="sAnnRev">$0</div></div>
+    <div class="stat"><div class="label">Annual Expenses</div><div class="value" id="sAnnExp">$0</div></div>
+    <div class="stat"><div class="label" id="lblAnnNet">Net Pre-Tax (Annual)</div><div class="value" id="sAnnNet">$0</div></div>
+    <div class="stat"><div class="label" id="lblAnnNetAT">Net After-Tax (Annual)</div><div class="value" id="sAnnNetAT">$0</div></div>
+    <div class="stat"><div class="label" id="lblMoNet">Monthly Net</div><div class="value" id="sMoNet">$0</div></div>
+    <div class="stat hidden" id="cardSplit"><div class="label">Sweet EV Share (Annual)</div><div class="value" id="sSplit">$0</div></div>
+    <div class="stat"><div class="label">Profit Margin</div><div class="value" id="sMargin">0%</div></div>
+    <div class="stat"><div class="label">Annual ROI</div><div class="value" id="sROI">—</div></div>
+    <div class="stat"><div class="label" id="lblBreakEven">Break-even Hrs/Week</div><div class="value" id="sBreakEven">0</div></div>
+    <div class="stat"><div class="label">Payback (Months)</div><div class="value" id="sPayback">—</div></div>
+    <div class="stat"><div class="label">36-Mo Cumulative Net</div><div class="value" id="s36mo">$0</div></div>
+  </div>
+
+  <div class="banner hidden" id="revWarn"></div>
+  <div style="height:20px"></div>
+
+  <!-- INPUTS -->
+  <div class="card">
+    <h2>Inputs</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="clientName">Client name</label>
+        <input type="text" id="clientName" placeholder="Client name">
+      </div>
+      <div class="field grp-driver">
+        <label for="city">City / market</label>
+        <select id="city"></select>
+        <div class="hint">Auto-fills revenue/hr (Uber Black preset)</div>
+      </div>
+      <div class="field grp-driver">
+        <label for="revHr">Revenue per hour ($/hr, after platform fees)</label>
+        <input type="number" id="revHr" min="0" step="1">
+      </div>
+      <div class="field grp-driver">
+        <label for="hoursWk">Booking hours per week</label>
+        <input type="number" id="hoursWk" min="0" step="1" value="45">
+      </div>
+      <div class="field grp-driver" style="grid-column: 1 / -1;">
+        <label for="util">Utilization</label>
+        <div class="slider-row">
+          <input type="range" id="util" min="50" max="100" step="1" value="100">
+          <span class="slider-val" id="utilVal">100%</span>
+        </div>
+        <div class="hint" id="utilHint">Accounts for vehicle downtime and driver time off. Sweet EV KPI target is 90%.</div>
+      </div>
+
+      <!-- Rental terms (shared: driver pays these, owner collects them) -->
+      <div class="field">
+        <label for="dailyRent">Daily rent ($/day)</label>
+        <input type="number" id="dailyRent" min="0" step="5" value="150">
+        <div class="hint" id="dailyRentHint">Rate depends on the vehicle. Black tier ≈ $115–$360/day ($800–$2,500/wk). KB estimate ~$100/day; pro forma ~$4,500/mo gross.</div>
+      </div>
+      <div class="field">
+        <label for="rentalDays">Rental days per month</label>
+        <input type="number" id="rentalDays" min="0" max="31" step="1" value="26">
+        <div class="hint">KB estimate: 25–30 rental days/mo. Captures vacancy and downtime.</div>
+      </div>
+      <div class="field">
+        <label for="chargingMo">Charging fees / month ($)</label>
+        <input type="number" id="chargingMo" min="0" step="10" value="0">
+        <div class="hint" id="chargingHint">Paid by the renter on top of daily rent.</div>
+      </div>
+
+      <!-- Driver fields -->
+      <div class="field grp-driver">
+        <label for="otherMo">Other costs / month ($)</label>
+        <input type="number" id="otherMo" min="0" step="10" value="0">
+        <div class="hint">Tolls, cleaning, etc.</div>
+      </div>
+      <div class="field grp-driver">
+        <label for="deposit">Deposit ($, one-time)</label>
+        <input type="number" id="deposit" min="0" step="50" value="1000">
+        <div class="hint">Black tier: $1,000–$5,000+. Feeds payback math.</div>
+      </div>
+
+      <!-- Investor / VIP fields -->
+      <div class="field grp-owner">
+        <label for="carNote">Car note / month ($)</label>
+        <input type="number" id="carNote" min="0" step="10" value="1000">
+        <div class="hint">Pro forma: $1,000/mo investor payment</div>
+      </div>
+      <div class="field grp-owner">
+        <label for="insurance">Insurance / month ($)</label>
+        <input type="number" id="insurance" min="0" step="10" value="350">
+        <div class="hint">Pro forma reserve: $350/mo</div>
+      </div>
+      <div class="field grp-owner">
+        <label for="maintenance">Maintenance / month ($)</label>
+        <input type="number" id="maintenance" min="0" step="10" value="250">
+        <div class="hint">Pro forma reserve: $250/mo</div>
+      </div>
+      <div class="field grp-owner">
+        <label for="sweetCost">Sweet EV Rides cost / month ($)</label>
+        <input type="number" id="sweetCost" min="0" step="10" value="400">
+        <div class="hint">Pro forma Ops &amp; Concierge: $400/mo</div>
+      </div>
+      <div class="field grp-owner">
+        <label for="permits">Permits / month ($)</label>
+        <input type="number" id="permits" min="0" step="10" value="0">
+      </div>
+      <div class="field grp-owner">
+        <label for="vehicleCost">Vehicle cost / capital invested ($, one-time)</label>
+        <input type="number" id="vehicleCost" min="0" step="500" value="30000">
+        <div class="hint">Used for ROI and payback. Deck example: $30K vehicle.</div>
+      </div>
+
+      <!-- VIP fields -->
+      <div class="field grp-vip">
+        <label for="programFee">Program fee ($, one-time)</label>
+        <input type="number" id="programFee" min="0" step="100" value="7000">
+        <div class="hint">DFY $7,000 · DWY $3,000 (subject to change)</div>
+      </div>
+      <div class="field grp-vip">
+        <div class="toggle-row">
+          <input type="checkbox" id="dfy">
+          <label for="dfy">DFY management (ongoing)</label>
+        </div>
+        <div id="mgmtWrap" class="hidden" style="margin-top:8px;">
+          <label for="mgmtFee">Management fee / month ($)</label>
+          <input type="number" id="mgmtFee" min="0" step="10" value="0">
+        </div>
+      </div>
+
+      <!-- Shared -->
+      <div class="field">
+        <label for="taxRate">Effective tax rate % (optional)</label>
+        <input type="number" id="taxRate" min="0" max="100" step="1" value="0">
+      </div>
+    </div>
+
+    <div class="banner hidden" id="splitNote" style="margin-top:16px;"></div>
+  </div>
+
+  <!-- MONTHLY BREAKDOWN -->
+  <div class="card">
+    <details open>
+      <summary>Monthly Breakdown</summary>
+      <div class="table-wrap">
+        <table>
+          <thead><tr id="tableHead"></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button onclick="window.print()">Export to PDF</button>
+    <button class="secondary" onclick="copyLink()">Copy shareable link</button>
+    <span id="copyMsg">Link copied</span>
+  </div>
+
+  <!-- VERSION -->
+  <div style="margin-top:16px; font-size:11px; color:var(--muted); text-align:right;">v1.0 — June 12, 2026</div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <strong>Illustrative projection — not a guarantee.</strong> All figures are targeted, projected, and illustrative estimates based on user inputs and Sweet EV Rides pro forma assumptions. Actual revenue, expenses, returns, and payouts vary and are never guaranteed. Investor economics are subject to the executed Revenue Share Agreement. Program pricing and fees are subject to change. This document is not financial, tax, or investment advice.
+  </div>
+
+</div>
+
+<script>
+const CITIES = [
+  ["New York, NY", 48],
+  ["Los Angeles, CA", 42],
+  ["Miami, FL", 40],
+  ["San Francisco, CA", 42],
+  ["Chicago, IL", 36],
+  ["Boston, MA", 38],
+  ["Washington, DC", 38],
+  ["Dallas, TX", 36],
+  ["Houston, TX", 34],
+  ["Atlanta, GA", 34],
+  ["Seattle, WA", 36],
+  ["Denver, CO", 34],
+  ["Phoenix, AZ", 32],
+  ["National average", 35],
+  ["Custom", null],
+];
+
+const TYPE_HINTS = {
+  investor: "Investor buys/finances the vehicle; Sweet EV operates it. Owner revenue = daily rent + charging fees paid by the renter (the renter keeps 100% of their Uber earnings). Net operating profit is split 50/50 per the Revenue Share Agreement — figures below show the client's share.",
+  driver: "Renter keeps 100% of Uber earnings and pays daily rent + charging fees. Rates depend on the vehicle. Deposit is one-time.",
+  vip: "VIP student owns the fleet vehicle. Revenue = daily rent + charging fees from the renter (not Uber fares). Program fee is one-time; toggle DFY management for ongoing fees.",
+};
+
+const PRO_FORMA_REV_CAP = 5500; // ~$4,500/mo pro forma gross + buffer
+
+const $ = id => document.getElementById(id);
+const num = id => parseFloat($(id).value) || 0;
+const fmt = v => (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+let clientType = "investor";
+
+// Populate city dropdown
+const citySel = $("city");
+CITIES.forEach(([name, rate]) => {
+  const opt = document.createElement("option");
+  opt.value = name;
+  opt.textContent = rate !== null ? `${name} — $${rate}/hr` : name;
+  citySel.appendChild(opt);
+});
+citySel.value = "National average";
+$("revHr").value = 35;
+
+citySel.addEventListener("change", () => {
+  const preset = CITIES.find(c => c[0] === citySel.value);
+  if (preset && preset[1] !== null) $("revHr").value = preset[1];
+  else if (citySel.value === "Custom") $("revHr").value = "";
+  calc();
+});
+
+// Client type switching
+document.querySelectorAll("#typeSeg button").forEach(btn => {
+  btn.addEventListener("click", () => setType(btn.dataset.type));
+});
+
+function setType(t) {
+  clientType = t;
+  document.querySelectorAll("#typeSeg button").forEach(b =>
+    b.classList.toggle("active", b.dataset.type === t));
+  $("typeHint").textContent = TYPE_HINTS[t];
+
+  document.querySelectorAll(".grp-driver").forEach(el => el.classList.toggle("hidden", t !== "driver"));
+  document.querySelectorAll(".grp-owner").forEach(el => el.classList.toggle("hidden", t === "driver"));
+  document.querySelectorAll(".grp-vip").forEach(el => el.classList.toggle("hidden", t !== "vip"));
+
+  calc();
+}
+
+$("dfy").addEventListener("change", () => {
+  $("mgmtWrap").classList.toggle("hidden", !$("dfy").checked);
+  calc();
+});
+
+const ALL_INPUTS = ["clientName","revHr","hoursWk","util","dailyRent","rentalDays","chargingMo","otherMo","deposit",
+  "carNote","insurance","maintenance","sweetCost","permits","vehicleCost","programFee","mgmtFee","taxRate"];
+ALL_INPUTS.forEach(id => $(id).addEventListener("input", calc));
+
+function colorClass(v) { return v >= 0 ? "pos" : "neg"; }
+function setStat(id, v) { $(id).textContent = fmt(v); $(id).className = "value " + colorClass(v); }
+
+function getExpenseItems() {
+  if (clientType === "driver") {
+    return [
+      ["Rent (daily × days)", num("dailyRent") * num("rentalDays")],
+      ["Charging Fees", num("chargingMo")],
+      ["Other Costs", num("otherMo")],
+    ];
+  }
+  const items = [
+    ["Car Note", num("carNote")],
+    ["Insurance", num("insurance")],
+    ["Maintenance", num("maintenance")],
+    ["Sweet EV Cost", num("sweetCost")],
+    ["Permits", num("permits")],
+  ];
+  if (clientType === "vip" && $("dfy").checked) items.push(["Mgmt Fee", num("mgmtFee")]);
+  return items;
+}
+
+function getCapitalBase() {
+  if (clientType === "investor") return num("vehicleCost");
+  if (clientType === "driver") return num("deposit");
+  // VIP: program fee + vehicle capital if any
+  return num("programFee") + num("vehicleCost");
+}
+
+function calc() {
+  const utilPct = num("util");
+  $("utilVal").textContent = utilPct + "%";
+
+  const name = $("clientName").value.trim();
+  const typeName = { investor: "Investor", driver: "Driver", vip: "VIP / DFY Student" }[clientType];
+  $("clientLine").textContent = (name ? "Prepared for " + name + " — " : "") + typeName + " model · Illustrative projection";
+
+  const isDriver = clientType === "driver";
+
+  // Revenue: driver earns Uber fares; owner (investor/VIP) earns daily rent + charging fees from the renter
+  let moRev;
+  if (isDriver) {
+    const effHours = num("hoursWk") * (utilPct / 100);
+    moRev = effHours * 4.3 * num("revHr");
+    $("chargingHint").textContent = "What you pay on top of daily rent (varies by vehicle).";
+  } else {
+    moRev = num("dailyRent") * num("rentalDays") + num("chargingMo");
+    $("chargingHint").textContent = "Collected from the renter on top of daily rent (varies by vehicle).";
+  }
+
+  const items = getExpenseItems();
+  const moExp = items.reduce((s, [, v]) => s + v, 0);
+  const moNetGross = moRev - moExp;
+
+  // 50/50 split for investors (after expenses, per Revenue Share Agreement)
+  const isSplit = clientType === "investor";
+  const clientMoNet = isSplit ? moNetGross * 0.5 : moNetGross;
+  const sweetMoShare = isSplit ? moNetGross * 0.5 : 0;
+
+  const taxRate = Math.min(num("taxRate"), 100) / 100;
+  const clientMoNetAT = clientMoNet * (1 - taxRate);
+
+  const annRev = moRev * 12;
+  const annExp = moExp * 12;
+  const annNet = clientMoNet * 12;
+  const annNetAT = clientMoNetAT * 12;
+
+  const margin = annRev > 0 ? (annNet / annRev) * 100 : 0;
+
+  // Break-even: driver = hours/week of fares; owner = daily rent needed to cover costs
+  let breakEven;
+  if (isDriver) {
+    $("lblBreakEven").textContent = "Break-even Hrs/Week";
+    breakEven = num("revHr") > 0 ? moExp / (4.3 * num("revHr")) : 0;
+    $("sBreakEven").textContent = breakEven > 0 ? breakEven.toFixed(1) : "0";
+  } else {
+    $("lblBreakEven").textContent = "Break-even Rent/Day";
+    const days = num("rentalDays");
+    breakEven = days > 0 ? Math.max(moExp - num("chargingMo"), 0) / days : 0;
+    $("sBreakEven").textContent = fmt(breakEven);
+  }
+
+  const capital = getCapitalBase();
+  const roi = capital > 0 ? (annNet / capital) * 100 : 0;
+  const payback = (capital > 0 && clientMoNet > 0) ? capital / clientMoNet : 0;
+  const cum36 = clientMoNetAT * 36 - capital;
+
+  // Labels
+  const shareLbl = isSplit ? " — Client 50% Share" : "";
+  $("lblAnnNet").textContent = "Net Pre-Tax (Annual)" + shareLbl;
+  $("lblAnnNetAT").textContent = "Net After-Tax (Annual)" + shareLbl;
+  $("lblMoNet").textContent = "Monthly Net" + shareLbl;
+  $("cardSplit").classList.toggle("hidden", !isSplit);
+
+  // Summary cards
+  $("sAnnRev").textContent = fmt(annRev);
+  $("sAnnExp").textContent = fmt(annExp);
+  setStat("sAnnNet", annNet);
+  setStat("sAnnNetAT", annNetAT);
+  setStat("sMoNet", clientMoNet);
+  if (isSplit) $("sSplit").textContent = fmt(sweetMoShare * 12);
+  $("sMargin").textContent = margin.toFixed(1) + "%";
+  $("sMargin").className = "value " + colorClass(margin);
+  $("sROI").textContent = capital > 0 ? roi.toFixed(1) + "%" : "—";
+  $("sROI").className = "value " + (capital > 0 ? colorClass(roi) : "");
+  $("sPayback").textContent = payback > 0 ? payback.toFixed(1) : "—";
+  setStat("s36mo", cum36);
+
+  // Revenue sanity guardrail — pro forma $4,500/mo gross applies to owner rental income
+  const warn = $("revWarn");
+  if (!isDriver && moRev > PRO_FORMA_REV_CAP) {
+    warn.textContent = "Projected monthly rental income (" + fmt(moRev) + ") is above Sweet EV pro forma assumptions (~$4,500/mo gross per Uber Black vehicle). High weekly rates are possible at the top of the Black tier, but confirm with Will before presenting these numbers to a client.";
+    warn.classList.remove("hidden");
+  } else {
+    warn.classList.add("hidden");
+  }
+
+  // Investor split note
+  const splitNote = $("splitNote");
+  if (isSplit) {
+    splitNote.textContent = "Investor economics: net operating profit is split 50/50 with Sweet EV per the Revenue Share Agreement. Sweet EV monthly share: " + fmt(sweetMoShare) + ". All summary figures show the client's 50% share.";
+    splitNote.classList.remove("hidden");
+  } else {
+    splitNote.classList.add("hidden");
+  }
+
+  // Table — dynamic columns
+  const headCols = ["Period", "Revenue", ...items.map(([l]) => l), "Total Expenses"];
+  if (isSplit) headCols.push("Net (Gross)", "Net (Client 50%)");
+  else headCols.push("Net");
+  $("tableHead").innerHTML = headCols.map(h => `<th>${h}</th>`).join("");
+
+  const moRow = ["Representative month", fmt(moRev), ...items.map(([, v]) => fmt(v)), fmt(moExp)];
+  const yrRow = ["Annual (× 12)", fmt(annRev), ...items.map(([, v]) => fmt(v * 12)), fmt(annExp)];
+  let moNetCells, yrNetCells;
+  if (isSplit) {
+    moNetCells = `<td class="${colorClass(moNetGross)}">${fmt(moNetGross)}</td><td class="${colorClass(clientMoNet)}">${fmt(clientMoNet)}</td>`;
+    yrNetCells = `<td class="${colorClass(moNetGross)}">${fmt(moNetGross * 12)}</td><td class="${colorClass(annNet)}">${fmt(annNet)}</td>`;
+  } else {
+    moNetCells = `<td class="${colorClass(clientMoNet)}">${fmt(clientMoNet)}</td>`;
+    yrNetCells = `<td class="${colorClass(annNet)}">${fmt(annNet)}</td>`;
+  }
+  $("tableBody").innerHTML =
+    `<tr>${moRow.map(c => `<td>${c}</td>`).join("")}${moNetCells}</tr>` +
+    `<tr class="totals">${yrRow.map(c => `<td>${c}</td>`).join("")}${yrNetCells}</tr>`;
+}
+
+// Shareable link: encode state in URL hash
+const SHARE_FIELDS = ["clientName","city","revHr","hoursWk","util","dailyRent","rentalDays","chargingMo","otherMo","deposit",
+  "carNote","insurance","maintenance","sweetCost","permits","vehicleCost","programFee","mgmtFee","taxRate"];
+
+function copyLink() {
+  const params = new URLSearchParams();
+  params.set("type", clientType);
+  SHARE_FIELDS.forEach(f => params.set(f, $(f).value));
+  params.set("dfy", $("dfy").checked ? "1" : "0");
+  const url = location.href.split("#")[0] + "#" + params.toString();
+  const done = () => {
+    const msg = $("copyMsg");
+    msg.style.display = "inline";
+    setTimeout(() => msg.style.display = "none", 2000);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
+  } else {
+    fallbackCopy(url, done);
+  }
+}
+
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  document.body.removeChild(ta);
+  done();
+}
+
+// Restore state from URL hash
+(function restore() {
+  if (!location.hash || location.hash.length < 2) { setType("investor"); return; }
+  const params = new URLSearchParams(location.hash.slice(1));
+  SHARE_FIELDS.forEach(f => { if (params.has(f)) $(f).value = params.get(f); });
+  if (params.get("dfy") === "1") {
+    $("dfy").checked = true;
+    $("mgmtWrap").classList.remove("hidden");
+  }
+  setType(params.get("type") || "investor");
+})();
+</script>
+</body>
+</html>
