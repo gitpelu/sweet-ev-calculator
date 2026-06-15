@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sweet EV Rides — Client P&L Model</title>
+<title>Sweet EV Rides — VIP Student P&L Model</title>
 <style>
   :root {
     --bg: #f4f5f7;
@@ -53,23 +53,16 @@
     color: var(--text);
   }
   input:focus, select:focus { outline: 2px solid #c7d2fe; border-color: #a5b4fc; }
-  input[type="range"] { width: 100%; accent-color: var(--accent); }
-  .slider-row { display: flex; align-items: center; gap: 10px; }
-  .slider-val { font-size: 13px; font-weight: 600; min-width: 44px; text-align: right; }
 
   .seg {
     display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content;
   }
   .seg button {
     background: #fff; color: var(--text); border: none; border-right: 1px solid var(--border);
-    padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 0;
+    padding: 9px 22px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 0;
   }
   .seg button:last-child { border-right: none; }
   .seg button.active { background: var(--accent); color: #fff; }
-
-  .toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-  .toggle-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
-  .toggle-row label { font-size: 13px; font-weight: 600; cursor: pointer; }
 
   .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
   .stat {
@@ -114,6 +107,7 @@
   .disclaimer strong { color: var(--text); }
 
   .hidden { display: none !important; }
+  footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 18px; }
 
   @media print {
     body { background: #fff; padding: 0; }
@@ -130,32 +124,31 @@
 <div class="container">
 
   <header>
-    <h1>Sweet EV Rides — Client P&L Model</h1>
-    <p id="clientLine">Illustrative profit and loss projection</p>
+    <h1>Sweet EV Rides — VIP Student P&L Model</h1>
+    <p id="clientLine">Illustrative profit and loss projection for VIP coaching students</p>
   </header>
 
-  <!-- CLIENT TYPE -->
+  <!-- PROGRAM TYPE -->
   <div class="card">
-    <h2>Client Type</h2>
-    <div class="seg" id="typeSeg">
-      <button data-type="investor" class="active">Investor</button>
-      <button data-type="driver">Driver</button>
-      <button data-type="vip">VIP / DFY Student</button>
+    <h2>Program</h2>
+    <div class="seg" id="progSeg">
+      <button data-prog="dwy" class="active">DWY — Done-With-You</button>
+      <button data-prog="dfy">DFY — Done-For-You</button>
     </div>
-    <div class="hint" id="typeHint" style="font-size:12px; color:var(--muted); margin-top:8px;"></div>
+    <div class="hint" id="progHint" style="font-size:12px; color:var(--muted); margin-top:8px;"></div>
   </div>
 
   <!-- SUMMARY CARDS -->
   <div class="summary-grid" id="summary">
     <div class="stat"><div class="label">Annual Revenue</div><div class="value" id="sAnnRev">$0</div></div>
     <div class="stat"><div class="label">Annual Expenses</div><div class="value" id="sAnnExp">$0</div></div>
-    <div class="stat"><div class="label" id="lblAnnNet">Net Pre-Tax (Annual)</div><div class="value" id="sAnnNet">$0</div></div>
-    <div class="stat"><div class="label" id="lblAnnNetAT">Net After-Tax (Annual)</div><div class="value" id="sAnnNetAT">$0</div></div>
-    <div class="stat"><div class="label" id="lblMoNet">Monthly Net</div><div class="value" id="sMoNet">$0</div></div>
-    <div class="stat hidden" id="cardSplit"><div class="label">Sweet EV Share (Annual)</div><div class="value" id="sSplit">$0</div></div>
+    <div class="stat"><div class="label">Net Pre-Tax (Annual)</div><div class="value" id="sAnnNet">$0</div></div>
+    <div class="stat"><div class="label">Net After-Tax (Annual)</div><div class="value" id="sAnnNetAT">$0</div></div>
+    <div class="stat"><div class="label">Monthly Net</div><div class="value" id="sMoNet">$0</div></div>
     <div class="stat"><div class="label">Profit Margin</div><div class="value" id="sMargin">0%</div></div>
+    <div class="stat"><div class="label">Break-even Rent/Day</div><div class="value" id="sBreakEven">$0</div></div>
+    <div class="stat"><div class="label">Total Upfront Investment</div><div class="value" id="sUpfront">$0</div></div>
     <div class="stat"><div class="label">Annual ROI</div><div class="value" id="sROI">—</div></div>
-    <div class="stat"><div class="label" id="lblBreakEven">Break-even Hrs/Week</div><div class="value" id="sBreakEven">0</div></div>
     <div class="stat"><div class="label">Payback (Months)</div><div class="value" id="sPayback">—</div></div>
     <div class="stat"><div class="label">36-Mo Cumulative Net</div><div class="value" id="s36mo">$0</div></div>
   </div>
@@ -171,33 +164,19 @@
         <label for="clientName">Client name</label>
         <input type="text" id="clientName" placeholder="Client name">
       </div>
-      <div class="field grp-driver">
-        <label for="city">City / market</label>
-        <select id="city"></select>
-        <div class="hint">Auto-fills revenue/hr (Uber Black preset)</div>
-      </div>
-      <div class="field grp-driver">
-        <label for="revHr">Revenue per hour ($/hr, after platform fees)</label>
-        <input type="number" id="revHr" min="0" step="1">
-      </div>
-      <div class="field grp-driver">
-        <label for="hoursWk">Booking hours per week</label>
-        <input type="number" id="hoursWk" min="0" step="1" value="45">
-      </div>
-      <div class="field grp-driver" style="grid-column: 1 / -1;">
-        <label for="util">Utilization</label>
-        <div class="slider-row">
-          <input type="range" id="util" min="50" max="100" step="1" value="100">
-          <span class="slider-val" id="utilVal">100%</span>
-        </div>
-        <div class="hint" id="utilHint">Accounts for vehicle downtime and driver time off. Sweet EV KPI target is 90%.</div>
+
+      <!-- Program fee -->
+      <div class="field">
+        <label for="programFee">Program fee ($, one-time)</label>
+        <input type="number" id="programFee" min="0" step="100" value="3000">
+        <div class="hint" id="programFeeHint">DWY $3,000 · DFY $7,000 (subject to change). Auto-fills with program; editable.</div>
       </div>
 
-      <!-- Rental terms (shared: driver pays these, owner collects them) -->
+      <!-- Rental income (student owns the vehicle and rents it out) -->
       <div class="field">
-        <label for="dailyRent">Daily rent ($/day)</label>
+        <label for="dailyRent">Daily rent charged to renter ($/day)</label>
         <input type="number" id="dailyRent" min="0" step="5" value="150">
-        <div class="hint" id="dailyRentHint">Rate depends on the vehicle. Black tier ≈ $115–$360/day ($800–$2,500/wk). KB estimate ~$100/day; pro forma ~$4,500/mo gross.</div>
+        <div class="hint">Rate depends on the vehicle. Renter keeps 100% of Uber earnings and pays this daily rent. KB estimate ~$100/day.</div>
       </div>
       <div class="field">
         <label for="rentalDays">Rental days per month</label>
@@ -205,69 +184,42 @@
         <div class="hint">KB estimate: 25–30 rental days/mo. Captures vacancy and downtime.</div>
       </div>
       <div class="field">
-        <label for="chargingMo">Charging fees / month ($)</label>
+        <label for="chargingMo">Charging fees collected / month ($)</label>
         <input type="number" id="chargingMo" min="0" step="10" value="0">
-        <div class="hint" id="chargingHint">Paid by the renter on top of daily rent.</div>
+        <div class="hint">Billed to the renter on top of daily rent.</div>
       </div>
 
-      <!-- Driver fields -->
-      <div class="field grp-driver">
-        <label for="otherMo">Other costs / month ($)</label>
-        <input type="number" id="otherMo" min="0" step="10" value="0">
-        <div class="hint">Tolls, cleaning, etc.</div>
-      </div>
-      <div class="field grp-driver">
-        <label for="deposit">Deposit ($, one-time)</label>
-        <input type="number" id="deposit" min="0" step="50" value="1000">
-        <div class="hint">Black tier: $1,000–$5,000+. Feeds payback math.</div>
-      </div>
-
-      <!-- Investor / VIP fields -->
-      <div class="field grp-owner">
+      <!-- Monthly costs -->
+      <div class="field">
         <label for="carNote">Car note / month ($)</label>
         <input type="number" id="carNote" min="0" step="10" value="1000">
-        <div class="hint">Pro forma: $1,000/mo investor payment</div>
+        <div class="hint">Student's vehicle financing payment.</div>
       </div>
-      <div class="field grp-owner">
+      <div class="field">
         <label for="insurance">Insurance / month ($)</label>
         <input type="number" id="insurance" min="0" step="10" value="350">
         <div class="hint">Pro forma reserve: $350/mo</div>
       </div>
-      <div class="field grp-owner">
+      <div class="field">
         <label for="maintenance">Maintenance / month ($)</label>
         <input type="number" id="maintenance" min="0" step="10" value="250">
         <div class="hint">Pro forma reserve: $250/mo</div>
       </div>
-      <div class="field grp-owner">
-        <label for="sweetCost">Sweet EV Rides cost / month ($)</label>
-        <input type="number" id="sweetCost" min="0" step="10" value="400">
-        <div class="hint">Pro forma Ops &amp; Concierge: $400/mo</div>
+      <div class="field" id="mgmtField">
+        <label for="mgmtFee" id="mgmtLbl">Sweet EV management / concierge ($/month)</label>
+        <input type="number" id="mgmtFee" min="0" step="10" value="0">
+        <div class="hint" id="mgmtHint">DFY: Sweet EV operates the vehicle (pro forma Ops &amp; Concierge ~$400/mo). DWY: self-managed, typically $0.</div>
       </div>
-      <div class="field grp-owner">
+      <div class="field">
         <label for="permits">Permits / month ($)</label>
         <input type="number" id="permits" min="0" step="10" value="0">
       </div>
-      <div class="field grp-owner">
+
+      <!-- Capital -->
+      <div class="field">
         <label for="vehicleCost">Vehicle cost / capital invested ($, one-time)</label>
         <input type="number" id="vehicleCost" min="0" step="500" value="30000">
-        <div class="hint">Used for ROI and payback. Deck example: $30K vehicle.</div>
-      </div>
-
-      <!-- VIP fields -->
-      <div class="field grp-vip">
-        <label for="programFee">Program fee ($, one-time)</label>
-        <input type="number" id="programFee" min="0" step="100" value="7000">
-        <div class="hint">DFY $7,000 · DWY $3,000 (subject to change)</div>
-      </div>
-      <div class="field grp-vip">
-        <div class="toggle-row">
-          <input type="checkbox" id="dfy">
-          <label for="dfy">DFY management (ongoing)</label>
-        </div>
-        <div id="mgmtWrap" class="hidden" style="margin-top:8px;">
-          <label for="mgmtFee">Management fee / month ($)</label>
-          <input type="number" id="mgmtFee" min="0" step="10" value="0">
-        </div>
+        <div class="hint">Used with the program fee for ROI &amp; payback. Deck example: $30K vehicle.</div>
       </div>
 
       <!-- Shared -->
@@ -276,8 +228,6 @@
         <input type="number" id="taxRate" min="0" max="100" step="1" value="0">
       </div>
     </div>
-
-    <div class="banner hidden" id="splitNote" style="margin-top:16px;"></div>
   </div>
 
   <!-- MONTHLY BREAKDOWN -->
@@ -300,39 +250,33 @@
     <span id="copyMsg">Link copied</span>
   </div>
 
-  <!-- VERSION -->
-  <div style="margin-top:16px; font-size:11px; color:var(--muted); text-align:right;">v1.0 — June 12, 2026</div>
-
   <!-- DISCLAIMER -->
   <div class="disclaimer">
-    <strong>Illustrative projection — not a guarantee.</strong> All figures are targeted, projected, and illustrative estimates based on user inputs and Sweet EV Rides pro forma assumptions. Actual revenue, expenses, returns, and payouts vary and are never guaranteed. Investor economics are subject to the executed Revenue Share Agreement. Program pricing and fees are subject to change. This document is not financial, tax, or investment advice.
+    <strong>Illustrative projection — not a guarantee.</strong> All figures are targeted, projected, and illustrative estimates based on user inputs and Sweet EV Rides pro forma assumptions. Actual rental income, expenses, and returns vary and are never guaranteed. VIP coaching programs (DWY/DFY) are educational offers; the student owns and operates their own vehicle and keeps their own net. Program pricing and fees are subject to change. This document is not financial, tax, or investment advice.
   </div>
+
+  <footer>Sweet EV Rides — VIP Student P&amp;L Model · v2.0</footer>
 
 </div>
 
 <script>
-const CITIES = [
-  ["New York, NY", 48],
-  ["Los Angeles, CA", 42],
-  ["Miami, FL", 40],
-  ["San Francisco, CA", 42],
-  ["Chicago, IL", 36],
-  ["Boston, MA", 38],
-  ["Washington, DC", 38],
-  ["Dallas, TX", 36],
-  ["Houston, TX", 34],
-  ["Atlanta, GA", 34],
-  ["Seattle, WA", 36],
-  ["Denver, CO", 34],
-  ["Phoenix, AZ", 32],
-  ["National average", 35],
-  ["Custom", null],
-];
-
-const TYPE_HINTS = {
-  investor: "Investor buys/finances the vehicle; Sweet EV operates it. Owner revenue = daily rent + charging fees paid by the renter (the renter keeps 100% of their Uber earnings). Net operating profit is split 50/50 per the Revenue Share Agreement — figures below show the client's share.",
-  driver: "Renter keeps 100% of Uber earnings and pays daily rent + charging fees. Rates depend on the vehicle. Deposit is one-time.",
-  vip: "VIP student owns the fleet vehicle. Revenue = daily rent + charging fees from the renter (not Uber fares). Program fee is one-time; toggle DFY management for ongoing fees.",
+const PROG = {
+  dwy: {
+    name: "DWY — Done-With-You",
+    fee: 3000,
+    mgmt: 0,
+    hint: "Done-With-You ($3,000): Sweet EV coaches the student to build and run their own rideshare fleet. The student owns the vehicle, rents it to a driver, and self-manages — so there's typically no ongoing Sweet EV management fee. Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
+    mgmtLbl: "Sweet EV management / concierge ($/month)",
+    mgmtHint: "DWY is self-managed — typically $0. Add a figure only if the student buys ongoing support.",
+  },
+  dfy: {
+    name: "DFY — Done-For-You",
+    fee: 7000,
+    mgmt: 400,
+    hint: "Done-For-You ($7,000): Sweet EV sets up and operates the fleet for the student. The student still owns the vehicle and keeps the net, but pays an ongoing Sweet EV management / concierge fee (pro forma ~$400/mo). Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
+    mgmtLbl: "Sweet EV management / concierge ($/month)",
+    mgmtHint: "DFY: Sweet EV operates the vehicle — pro forma Ops & Concierge ~$400/mo.",
+  },
 };
 
 const PRO_FORMA_REV_CAP = 5500; // ~$4,500/mo pro forma gross + buffer
@@ -341,209 +285,125 @@ const $ = id => document.getElementById(id);
 const num = id => parseFloat($(id).value) || 0;
 const fmt = v => (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-let clientType = "investor";
+let prog = "dwy";
+let feeTouched = false;   // don't overwrite a fee the user edited
+let mgmtTouched = false;  // don't overwrite a mgmt fee the user edited
 
-// Populate city dropdown
-const citySel = $("city");
-CITIES.forEach(([name, rate]) => {
-  const opt = document.createElement("option");
-  opt.value = name;
-  opt.textContent = rate !== null ? `${name} — $${rate}/hr` : name;
-  citySel.appendChild(opt);
-});
-citySel.value = "National average";
-$("revHr").value = 35;
-
-citySel.addEventListener("change", () => {
-  const preset = CITIES.find(c => c[0] === citySel.value);
-  if (preset && preset[1] !== null) $("revHr").value = preset[1];
-  else if (citySel.value === "Custom") $("revHr").value = "";
-  calc();
+// Program switching
+document.querySelectorAll("#progSeg button").forEach(btn => {
+  btn.addEventListener("click", () => setProg(btn.dataset.prog, true));
 });
 
-// Client type switching
-document.querySelectorAll("#typeSeg button").forEach(btn => {
-  btn.addEventListener("click", () => setType(btn.dataset.type));
-});
+function setProg(p, userClicked) {
+  prog = p;
+  const cfg = PROG[p];
+  document.querySelectorAll("#progSeg button").forEach(b =>
+    b.classList.toggle("active", b.dataset.prog === p));
+  $("progHint").textContent = cfg.hint;
+  $("mgmtLbl").textContent = cfg.mgmtLbl;
+  $("mgmtHint").textContent = cfg.mgmtHint;
 
-function setType(t) {
-  clientType = t;
-  document.querySelectorAll("#typeSeg button").forEach(b =>
-    b.classList.toggle("active", b.dataset.type === t));
-  $("typeHint").textContent = TYPE_HINTS[t];
-
-  document.querySelectorAll(".grp-driver").forEach(el => el.classList.toggle("hidden", t !== "driver"));
-  document.querySelectorAll(".grp-owner").forEach(el => el.classList.toggle("hidden", t === "driver"));
-  document.querySelectorAll(".grp-vip").forEach(el => el.classList.toggle("hidden", t !== "vip"));
+  // Auto-fill program fee & management fee unless the user has typed their own
+  if (userClicked || !feeTouched) { $("programFee").value = cfg.fee; feeTouched = false; }
+  if (userClicked || !mgmtTouched) { $("mgmtFee").value = cfg.mgmt; mgmtTouched = false; }
 
   calc();
 }
 
-$("dfy").addEventListener("change", () => {
-  $("mgmtWrap").classList.toggle("hidden", !$("dfy").checked);
-  calc();
-});
+$("programFee").addEventListener("input", () => { feeTouched = true; });
+$("mgmtFee").addEventListener("input", () => { mgmtTouched = true; });
 
-const ALL_INPUTS = ["clientName","revHr","hoursWk","util","dailyRent","rentalDays","chargingMo","otherMo","deposit",
-  "carNote","insurance","maintenance","sweetCost","permits","vehicleCost","programFee","mgmtFee","taxRate"];
+const ALL_INPUTS = ["clientName","programFee","dailyRent","rentalDays","chargingMo",
+  "carNote","insurance","maintenance","mgmtFee","permits","vehicleCost","taxRate"];
 ALL_INPUTS.forEach(id => $(id).addEventListener("input", calc));
 
 function colorClass(v) { return v >= 0 ? "pos" : "neg"; }
 function setStat(id, v) { $(id).textContent = fmt(v); $(id).className = "value " + colorClass(v); }
 
 function getExpenseItems() {
-  if (clientType === "driver") {
-    return [
-      ["Rent (daily × days)", num("dailyRent") * num("rentalDays")],
-      ["Charging Fees", num("chargingMo")],
-      ["Other Costs", num("otherMo")],
-    ];
-  }
-  const items = [
+  return [
     ["Car Note", num("carNote")],
     ["Insurance", num("insurance")],
     ["Maintenance", num("maintenance")],
-    ["Sweet EV Cost", num("sweetCost")],
+    ["Sweet EV Mgmt", num("mgmtFee")],
     ["Permits", num("permits")],
   ];
-  if (clientType === "vip" && $("dfy").checked) items.push(["Mgmt Fee", num("mgmtFee")]);
-  return items;
-}
-
-function getCapitalBase() {
-  if (clientType === "investor") return num("vehicleCost");
-  if (clientType === "driver") return num("deposit");
-  // VIP: program fee + vehicle capital if any
-  return num("programFee") + num("vehicleCost");
 }
 
 function calc() {
-  const utilPct = num("util");
-  $("utilVal").textContent = utilPct + "%";
-
   const name = $("clientName").value.trim();
-  const typeName = { investor: "Investor", driver: "Driver", vip: "VIP / DFY Student" }[clientType];
-  $("clientLine").textContent = (name ? "Prepared for " + name + " — " : "") + typeName + " model · Illustrative projection";
+  $("clientLine").textContent = (name ? "Prepared for " + name + " — " : "") + PROG[prog].name + " · Illustrative projection";
 
-  const isDriver = clientType === "driver";
-
-  // Revenue: driver earns Uber fares; owner (investor/VIP) earns daily rent + charging fees from the renter
-  let moRev;
-  if (isDriver) {
-    const effHours = num("hoursWk") * (utilPct / 100);
-    moRev = effHours * 4.3 * num("revHr");
-    $("chargingHint").textContent = "What you pay on top of daily rent (varies by vehicle).";
-  } else {
-    moRev = num("dailyRent") * num("rentalDays") + num("chargingMo");
-    $("chargingHint").textContent = "Collected from the renter on top of daily rent (varies by vehicle).";
-  }
+  // Revenue: student owns the vehicle and collects daily rent + charging fees from the renter
+  const moRev = num("dailyRent") * num("rentalDays") + num("chargingMo");
 
   const items = getExpenseItems();
   const moExp = items.reduce((s, [, v]) => s + v, 0);
-  const moNetGross = moRev - moExp;
-
-  // 50/50 split for investors (after expenses, per Revenue Share Agreement)
-  const isSplit = clientType === "investor";
-  const clientMoNet = isSplit ? moNetGross * 0.5 : moNetGross;
-  const sweetMoShare = isSplit ? moNetGross * 0.5 : 0;
+  const moNet = moRev - moExp;
 
   const taxRate = Math.min(num("taxRate"), 100) / 100;
-  const clientMoNetAT = clientMoNet * (1 - taxRate);
+  const moNetAT = moNet * (1 - taxRate);
 
   const annRev = moRev * 12;
   const annExp = moExp * 12;
-  const annNet = clientMoNet * 12;
-  const annNetAT = clientMoNetAT * 12;
+  const annNet = moNet * 12;
+  const annNetAT = moNetAT * 12;
 
   const margin = annRev > 0 ? (annNet / annRev) * 100 : 0;
 
-  // Break-even: driver = hours/week of fares; owner = daily rent needed to cover costs
-  let breakEven;
-  if (isDriver) {
-    $("lblBreakEven").textContent = "Break-even Hrs/Week";
-    breakEven = num("revHr") > 0 ? moExp / (4.3 * num("revHr")) : 0;
-    $("sBreakEven").textContent = breakEven > 0 ? breakEven.toFixed(1) : "0";
-  } else {
-    $("lblBreakEven").textContent = "Break-even Rent/Day";
-    const days = num("rentalDays");
-    breakEven = days > 0 ? Math.max(moExp - num("chargingMo"), 0) / days : 0;
-    $("sBreakEven").textContent = fmt(breakEven);
-  }
+  // Break-even rent/day: daily rate needed to cover all costs at current rental days
+  const days = num("rentalDays");
+  const breakEven = days > 0 ? Math.max(moExp - num("chargingMo"), 0) / days : 0;
 
-  const capital = getCapitalBase();
-  const roi = capital > 0 ? (annNet / capital) * 100 : 0;
-  const payback = (capital > 0 && clientMoNet > 0) ? capital / clientMoNet : 0;
-  const cum36 = clientMoNetAT * 36 - capital;
-
-  // Labels
-  const shareLbl = isSplit ? " — Client 50% Share" : "";
-  $("lblAnnNet").textContent = "Net Pre-Tax (Annual)" + shareLbl;
-  $("lblAnnNetAT").textContent = "Net After-Tax (Annual)" + shareLbl;
-  $("lblMoNet").textContent = "Monthly Net" + shareLbl;
-  $("cardSplit").classList.toggle("hidden", !isSplit);
+  // Capital = program fee + vehicle cost (student's total upfront outlay)
+  const upfront = num("programFee") + num("vehicleCost");
+  const roi = upfront > 0 ? (annNet / upfront) * 100 : 0;
+  const payback = (upfront > 0 && moNet > 0) ? upfront / moNet : 0;
+  const cum36 = moNetAT * 36 - upfront;
 
   // Summary cards
   $("sAnnRev").textContent = fmt(annRev);
   $("sAnnExp").textContent = fmt(annExp);
   setStat("sAnnNet", annNet);
   setStat("sAnnNetAT", annNetAT);
-  setStat("sMoNet", clientMoNet);
-  if (isSplit) $("sSplit").textContent = fmt(sweetMoShare * 12);
+  setStat("sMoNet", moNet);
   $("sMargin").textContent = margin.toFixed(1) + "%";
   $("sMargin").className = "value " + colorClass(margin);
-  $("sROI").textContent = capital > 0 ? roi.toFixed(1) + "%" : "—";
-  $("sROI").className = "value " + (capital > 0 ? colorClass(roi) : "");
+  $("sBreakEven").textContent = fmt(breakEven);
+  $("sUpfront").textContent = fmt(upfront);
+  $("sROI").textContent = upfront > 0 ? roi.toFixed(1) + "%" : "—";
+  $("sROI").className = "value " + (upfront > 0 ? colorClass(roi) : "");
   $("sPayback").textContent = payback > 0 ? payback.toFixed(1) : "—";
   setStat("s36mo", cum36);
 
-  // Revenue sanity guardrail — pro forma $4,500/mo gross applies to owner rental income
+  // Revenue sanity guardrail — pro forma ~$4,500/mo gross per Uber Black vehicle
   const warn = $("revWarn");
-  if (!isDriver && moRev > PRO_FORMA_REV_CAP) {
-    warn.textContent = "Projected monthly rental income (" + fmt(moRev) + ") is above Sweet EV pro forma assumptions (~$4,500/mo gross per Uber Black vehicle). High weekly rates are possible at the top of the Black tier, but confirm with Will before presenting these numbers to a client.";
+  if (moRev > PRO_FORMA_REV_CAP) {
+    warn.textContent = "Projected monthly rental income (" + fmt(moRev) + ") is above Sweet EV pro forma assumptions (~$4,500/mo gross per Uber Black vehicle). Possible at the top of the Black tier, but confirm the daily rate with Will before presenting these numbers to a student.";
     warn.classList.remove("hidden");
   } else {
     warn.classList.add("hidden");
   }
 
-  // Investor split note
-  const splitNote = $("splitNote");
-  if (isSplit) {
-    splitNote.textContent = "Investor economics: net operating profit is split 50/50 with Sweet EV per the Revenue Share Agreement. Sweet EV monthly share: " + fmt(sweetMoShare) + ". All summary figures show the client's 50% share.";
-    splitNote.classList.remove("hidden");
-  } else {
-    splitNote.classList.add("hidden");
-  }
-
-  // Table — dynamic columns
-  const headCols = ["Period", "Revenue", ...items.map(([l]) => l), "Total Expenses"];
-  if (isSplit) headCols.push("Net (Gross)", "Net (Client 50%)");
-  else headCols.push("Net");
+  // Table
+  const headCols = ["Period", "Revenue", ...items.map(([l]) => l), "Total Expenses", "Net"];
   $("tableHead").innerHTML = headCols.map(h => `<th>${h}</th>`).join("");
 
   const moRow = ["Representative month", fmt(moRev), ...items.map(([, v]) => fmt(v)), fmt(moExp)];
   const yrRow = ["Annual (× 12)", fmt(annRev), ...items.map(([, v]) => fmt(v * 12)), fmt(annExp)];
-  let moNetCells, yrNetCells;
-  if (isSplit) {
-    moNetCells = `<td class="${colorClass(moNetGross)}">${fmt(moNetGross)}</td><td class="${colorClass(clientMoNet)}">${fmt(clientMoNet)}</td>`;
-    yrNetCells = `<td class="${colorClass(moNetGross)}">${fmt(moNetGross * 12)}</td><td class="${colorClass(annNet)}">${fmt(annNet)}</td>`;
-  } else {
-    moNetCells = `<td class="${colorClass(clientMoNet)}">${fmt(clientMoNet)}</td>`;
-    yrNetCells = `<td class="${colorClass(annNet)}">${fmt(annNet)}</td>`;
-  }
   $("tableBody").innerHTML =
-    `<tr>${moRow.map(c => `<td>${c}</td>`).join("")}${moNetCells}</tr>` +
-    `<tr class="totals">${yrRow.map(c => `<td>${c}</td>`).join("")}${yrNetCells}</tr>`;
+    `<tr>${moRow.map(c => `<td>${c}</td>`).join("")}<td class="${colorClass(moNet)}">${fmt(moNet)}</td></tr>` +
+    `<tr class="totals">${yrRow.map(c => `<td>${c}</td>`).join("")}<td class="${colorClass(annNet)}">${fmt(annNet)}</td></tr>`;
 }
 
 // Shareable link: encode state in URL hash
-const SHARE_FIELDS = ["clientName","city","revHr","hoursWk","util","dailyRent","rentalDays","chargingMo","otherMo","deposit",
-  "carNote","insurance","maintenance","sweetCost","permits","vehicleCost","programFee","mgmtFee","taxRate"];
+const SHARE_FIELDS = ["clientName","programFee","dailyRent","rentalDays","chargingMo",
+  "carNote","insurance","maintenance","mgmtFee","permits","vehicleCost","taxRate"];
 
 function copyLink() {
   const params = new URLSearchParams();
-  params.set("type", clientType);
+  params.set("prog", prog);
   SHARE_FIELDS.forEach(f => params.set(f, $(f).value));
-  params.set("dfy", $("dfy").checked ? "1" : "0");
   const url = location.href.split("#")[0] + "#" + params.toString();
   const done = () => {
     const msg = $("copyMsg");
@@ -569,14 +429,13 @@ function fallbackCopy(text, done) {
 
 // Restore state from URL hash
 (function restore() {
-  if (!location.hash || location.hash.length < 2) { setType("investor"); return; }
+  if (!location.hash || location.hash.length < 2) { setProg("dwy", false); return; }
   const params = new URLSearchParams(location.hash.slice(1));
+  // mark touched so program switch doesn't clobber shared values
+  if (params.has("programFee")) feeTouched = true;
+  if (params.has("mgmtFee")) mgmtTouched = true;
   SHARE_FIELDS.forEach(f => { if (params.has(f)) $(f).value = params.get(f); });
-  if (params.get("dfy") === "1") {
-    $("dfy").checked = true;
-    $("mgmtWrap").classList.remove("hidden");
-  }
-  setType(params.get("type") || "investor");
+  setProg(params.get("prog") || "dwy", false);
 })();
 </script>
 </body>
