@@ -169,7 +169,7 @@
       <div class="field">
         <label for="programFee">Program fee ($, one-time)</label>
         <input type="number" id="programFee" min="0" step="100" value="3000">
-        <div class="hint" id="programFeeHint">DWY $3,000 · DFY $7,000 (subject to change). Auto-fills with program; editable.</div>
+        <div class="hint" id="programFeeHint">Subject to change. Auto-fills with the selected program; editable.</div>
       </div>
 
       <!-- Rental income (student owns the vehicle and rents it out) -->
@@ -255,7 +255,7 @@
     <strong>Illustrative projection — not a guarantee.</strong> All figures are targeted, projected, and illustrative estimates based on user inputs and Sweet EV Rides pro forma assumptions. Actual rental income, expenses, and returns vary and are never guaranteed. VIP coaching programs (DWY/DFY) are educational offers; the student owns and operates their own vehicle and keeps their own net. Program pricing and fees are subject to change. This document is not financial, tax, or investment advice.
   </div>
 
-  <footer>Sweet EV Rides — VIP Student P&amp;L Model · v2.0</footer>
+  <footer>Sweet EV Rides — VIP Student P&amp;L Model · v2.1</footer>
 
 </div>
 
@@ -265,7 +265,7 @@ const PROG = {
     name: "DWY — Done-With-You",
     fee: 3000,
     mgmt: 0,
-    hint: "Done-With-You ($3,000): Sweet EV coaches the student to build and run their own rideshare fleet. The student owns the vehicle, rents it to a driver, and self-manages — so there's typically no ongoing Sweet EV management fee. Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
+    hint: "Done-With-You: Sweet EV coaches the student to build and run their own rideshare fleet. The student owns the vehicle, rents it to a driver, and self-manages — so there's typically no ongoing Sweet EV management fee. Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
     mgmtLbl: "Sweet EV management / concierge ($/month)",
     mgmtHint: "DWY is self-managed — typically $0. Add a figure only if the student buys ongoing support.",
   },
@@ -273,7 +273,7 @@ const PROG = {
     name: "DFY — Done-For-You",
     fee: 7000,
     mgmt: 400,
-    hint: "Done-For-You ($7,000): Sweet EV sets up and operates the fleet for the student. The student still owns the vehicle and keeps the net, but pays an ongoing Sweet EV management / concierge fee (pro forma ~$400/mo). Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
+    hint: "Done-For-You: Sweet EV sets up and operates the fleet for the student. The student still owns the vehicle and keeps the net, but pays an ongoing Sweet EV management / concierge fee. Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
     mgmtLbl: "Sweet EV management / concierge ($/month)",
     mgmtHint: "DFY: Sweet EV operates the vehicle — pro forma Ops & Concierge ~$400/mo.",
   },
