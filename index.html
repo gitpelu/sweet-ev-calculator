@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sweet EV Rides — VIP Student P&L Model</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #f4f5f7;
@@ -39,8 +40,10 @@
     margin-bottom: 20px;
   }
   .card h2 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 16px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-head h2 { margin-bottom: 0; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
   .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
   .field .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
   input[type="text"], input[type="number"], select {
@@ -54,9 +57,7 @@
   }
   input:focus, select:focus { outline: 2px solid #c7d2fe; border-color: #a5b4fc; }
 
-  .seg {
-    display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content;
-  }
+  .seg { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content; }
   .seg button {
     background: #fff; color: var(--text); border: none; border-right: 1px solid var(--border);
     padding: 9px 22px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 0;
@@ -65,12 +66,7 @@
   .seg button.active { background: var(--accent); color: #fff; }
 
   .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
-  .stat {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-  }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .stat .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
   .stat .value { font-size: 19px; font-weight: 700; margin-top: 4px; }
   .pos { color: var(--green); }
@@ -81,38 +77,48 @@
     border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: 600; margin: 14px 0 0;
   }
 
+  /* car cards */
+  .car { border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; background: #fafafa; }
+  .car-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .car-head .car-title { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .car-head .car-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); white-space: nowrap; }
+  .car-head input.car-name { max-width: 240px; }
+  .car-net { font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .btn-mini { padding: 6px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); background: #fff; color: var(--text); }
+  .btn-mini.danger { color: var(--red); border-color: #f3c4c4; }
+  .btn-mini:hover { opacity: 0.85; }
+
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th, td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
   th:first-child, td:first-child { text-align: left; }
   th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
-  tr.totals td { font-weight: 700; border-top: 2px solid var(--text); border-bottom: none; }
+  tr.fleet td { font-weight: 700; border-top: 2px solid var(--text); }
+  tr.totals td { font-weight: 700; background: #fafafa; }
   .table-wrap { overflow-x: auto; }
+
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .chart-box { min-height: 300px; }
+  .chart-box h3 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+  @media (max-width: 820px) { .charts { grid-template-columns: 1fr; } }
 
   details summary { cursor: pointer; font-size: 14px; font-weight: 600; padding: 4px 0; user-select: none; }
   details[open] summary { margin-bottom: 12px; }
 
   .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  button {
-    padding: 10px 18px; border: 1px solid var(--accent); border-radius: 6px;
-    font-size: 14px; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff;
-  }
-  button.secondary { background: #fff; color: var(--accent); }
+  button.primary, button.add { padding: 10px 18px; border: 1px solid var(--accent); border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff; }
+  button.secondary { padding: 10px 18px; border: 1px solid var(--accent); border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; background: #fff; color: var(--accent); }
   button:hover { opacity: 0.88; }
   #copyMsg { font-size: 13px; color: var(--green); align-self: center; display: none; }
 
-  .disclaimer {
-    margin-top: 20px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px;
-    background: #fff; font-size: 12px; color: var(--muted);
-  }
+  .disclaimer { margin-top: 20px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font-size: 12px; color: var(--muted); }
   .disclaimer strong { color: var(--text); }
-
   .hidden { display: none !important; }
   footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 18px; }
 
   @media print {
     body { background: #fff; padding: 0; }
-    .actions, #copyMsg { display: none !important; }
-    .card, .stat, .disclaimer { border-color: #ccc; break-inside: avoid; }
+    .actions, #copyMsg, .btn-mini, .add { display: none !important; }
+    .card, .stat, .disclaimer, .car { border-color: #ccc; break-inside: avoid; }
     details { display: block; }
     details summary { display: none; }
     .banner { border-color: #999; }
@@ -138,15 +144,36 @@
     <div class="hint" id="progHint" style="font-size:12px; color:var(--muted); margin-top:8px;"></div>
   </div>
 
-  <!-- SUMMARY CARDS -->
+  <!-- STUDENT-LEVEL INPUTS -->
+  <div class="card">
+    <h2>Student</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="clientName">Client name</label>
+        <input type="text" id="clientName" placeholder="Client name">
+      </div>
+      <div class="field">
+        <label for="programFee">Program fee ($, one-time)</label>
+        <input type="number" id="programFee" min="0" step="100" value="3000">
+        <div class="hint">Charged once per student, regardless of car count. Subject to change; auto-fills with program.</div>
+      </div>
+      <div class="field">
+        <label for="taxRate">Effective tax rate % (optional)</label>
+        <input type="number" id="taxRate" min="0" max="100" step="1" value="0">
+        <div class="hint">Applied to fleet net.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY CARDS (FLEET) -->
   <div class="summary-grid" id="summary">
+    <div class="stat"><div class="label">Cars in Fleet</div><div class="value" id="sCars">1</div></div>
     <div class="stat"><div class="label">Annual Revenue</div><div class="value" id="sAnnRev">$0</div></div>
     <div class="stat"><div class="label">Annual Expenses</div><div class="value" id="sAnnExp">$0</div></div>
+    <div class="stat"><div class="label">Monthly Net (Fleet)</div><div class="value" id="sMoNet">$0</div></div>
     <div class="stat"><div class="label">Net Pre-Tax (Annual)</div><div class="value" id="sAnnNet">$0</div></div>
     <div class="stat"><div class="label">Net After-Tax (Annual)</div><div class="value" id="sAnnNetAT">$0</div></div>
-    <div class="stat"><div class="label">Monthly Net</div><div class="value" id="sMoNet">$0</div></div>
     <div class="stat"><div class="label">Profit Margin</div><div class="value" id="sMargin">0%</div></div>
-    <div class="stat"><div class="label">Break-even Rent/Day</div><div class="value" id="sBreakEven">$0</div></div>
     <div class="stat"><div class="label">Total Upfront Investment</div><div class="value" id="sUpfront">$0</div></div>
     <div class="stat"><div class="label">Annual ROI</div><div class="value" id="sROI">—</div></div>
     <div class="stat"><div class="label">Payback (Months)</div><div class="value" id="sPayback">—</div></div>
@@ -156,76 +183,26 @@
   <div class="banner hidden" id="revWarn"></div>
   <div style="height:20px"></div>
 
-  <!-- INPUTS -->
+  <!-- CARS -->
   <div class="card">
-    <h2>Inputs</h2>
-    <div class="grid">
-      <div class="field">
-        <label for="clientName">Client name</label>
-        <input type="text" id="clientName" placeholder="Client name">
-      </div>
+    <div class="card-head">
+      <h2>Fleet — Cars</h2>
+      <button class="add" id="addCar">+ Add car</button>
+    </div>
+    <div id="carsWrap"></div>
+  </div>
 
-      <!-- Program fee -->
-      <div class="field">
-        <label for="programFee">Program fee ($, one-time)</label>
-        <input type="number" id="programFee" min="0" step="100" value="3000">
-        <div class="hint" id="programFeeHint">Subject to change. Auto-fills with the selected program; editable.</div>
+  <!-- CHARTS -->
+  <div class="card">
+    <h2>Projected Returns</h2>
+    <div class="charts">
+      <div class="chart-box">
+        <h3>Monthly net by car (after-tax)</h3>
+        <canvas id="chartByCar"></canvas>
       </div>
-
-      <!-- Rental income (student owns the vehicle and rents it out) -->
-      <div class="field">
-        <label for="dailyRent">Daily rent charged to renter ($/day)</label>
-        <input type="number" id="dailyRent" min="0" step="5" value="150">
-        <div class="hint">Rate depends on the vehicle. Renter keeps 100% of Uber earnings and pays this daily rent. KB estimate ~$100/day.</div>
-      </div>
-      <div class="field">
-        <label for="rentalDays">Rental days per month</label>
-        <input type="number" id="rentalDays" min="0" max="31" step="1" value="26">
-        <div class="hint">KB estimate: 25–30 rental days/mo. Captures vacancy and downtime.</div>
-      </div>
-      <div class="field">
-        <label for="chargingMo">Charging fees collected / month ($)</label>
-        <input type="number" id="chargingMo" min="0" step="10" value="0">
-        <div class="hint">Billed to the renter on top of daily rent.</div>
-      </div>
-
-      <!-- Monthly costs -->
-      <div class="field">
-        <label for="carNote">Car note / month ($)</label>
-        <input type="number" id="carNote" min="0" step="10" value="1000">
-        <div class="hint">Student's vehicle financing payment.</div>
-      </div>
-      <div class="field">
-        <label for="insurance">Insurance / month ($)</label>
-        <input type="number" id="insurance" min="0" step="10" value="350">
-        <div class="hint">Pro forma reserve: $350/mo</div>
-      </div>
-      <div class="field">
-        <label for="maintenance">Maintenance / month ($)</label>
-        <input type="number" id="maintenance" min="0" step="10" value="250">
-        <div class="hint">Pro forma reserve: $250/mo</div>
-      </div>
-      <div class="field" id="mgmtField">
-        <label for="mgmtFee" id="mgmtLbl">Sweet EV management / concierge ($/month)</label>
-        <input type="number" id="mgmtFee" min="0" step="10" value="0">
-        <div class="hint" id="mgmtHint">DFY: Sweet EV operates the vehicle (pro forma Ops &amp; Concierge ~$400/mo). DWY: self-managed, typically $0.</div>
-      </div>
-      <div class="field">
-        <label for="permits">Permits / month ($)</label>
-        <input type="number" id="permits" min="0" step="10" value="0">
-      </div>
-
-      <!-- Capital -->
-      <div class="field">
-        <label for="vehicleCost">Down payment / cash invested ($, one-time)</label>
-        <input type="number" id="vehicleCost" min="0" step="500" value="5000">
-        <div class="hint">Actual cash out of pocket. Financed deal: enter the down payment (KB minimum ~$5K). Cash purchase: enter the full vehicle price. Drives ROI &amp; payback.</div>
-      </div>
-
-      <!-- Shared -->
-      <div class="field">
-        <label for="taxRate">Effective tax rate % (optional)</label>
-        <input type="number" id="taxRate" min="0" max="100" step="1" value="0">
+      <div class="chart-box">
+        <h3>Cumulative fleet net over 36 months (after-tax)</h3>
+        <canvas id="chartCumulative"></canvas>
       </div>
     </div>
   </div>
@@ -245,17 +222,17 @@
 
   <!-- ACTIONS -->
   <div class="actions">
-    <button onclick="window.print()">Export to PDF</button>
+    <button class="primary" onclick="window.print()">Export to PDF</button>
     <button class="secondary" onclick="copyLink()">Copy shareable link</button>
     <span id="copyMsg">Link copied</span>
   </div>
 
   <!-- DISCLAIMER -->
   <div class="disclaimer">
-    <strong>Illustrative projection — not a guarantee.</strong> All figures are targeted, projected, and illustrative estimates based on user inputs and Sweet EV Rides pro forma assumptions. Actual rental income, expenses, and returns vary and are never guaranteed. VIP coaching programs (DWY/DFY) are educational offers; the student owns and operates their own vehicle and keeps their own net. Program pricing and fees are subject to change. This document is not financial, tax, or investment advice.
+    <strong>Illustrative projection — not a guarantee.</strong> All figures are targeted, projected, and illustrative estimates based on user inputs and Sweet EV Rides pro forma assumptions. Actual rental income, expenses, and returns vary and are never guaranteed. VIP coaching programs (DWY/DFY) are educational offers; the student owns and operates their own vehicle(s) and keeps their own net. Program pricing and fees are subject to change. This document is not financial, tax, or investment advice.
   </div>
 
-  <footer>Sweet EV Rides — VIP Student P&amp;L Model · v2.2</footer>
+  <footer>Sweet EV Rides — VIP Student P&amp;L Model · v3.0</footer>
 
 </div>
 
@@ -265,31 +242,48 @@ const PROG = {
     name: "DWY — Done-With-You",
     fee: 3000,
     mgmt: 0,
-    hint: "Done-With-You: Sweet EV coaches the student to build and run their own rideshare fleet. The student owns the vehicle, rents it to a driver, and self-manages — so there's typically no ongoing Sweet EV management fee. Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
-    mgmtLbl: "Sweet EV management / concierge ($/month)",
-    mgmtHint: "DWY is self-managed — typically $0. Add a figure only if the student buys ongoing support.",
+    hint: "Done-With-You: Sweet EV coaches the student to build and run their own rideshare fleet. The student owns the vehicle(s), rents to drivers, and self-manages — so there's typically no ongoing Sweet EV management fee. Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
   },
   dfy: {
     name: "DFY — Done-For-You",
     fee: 7000,
     mgmt: 400,
-    hint: "Done-For-You: Sweet EV sets up and operates the fleet for the student. The student still owns the vehicle and keeps the net, but pays an ongoing Sweet EV management / concierge fee. Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
-    mgmtLbl: "Sweet EV management / concierge ($/month)",
-    mgmtHint: "DFY: Sweet EV operates the vehicle — pro forma Ops & Concierge ~$400/mo.",
+    hint: "Done-For-You: Sweet EV sets up and operates the fleet for the student. The student still owns the vehicles and keeps the net, but pays an ongoing Sweet EV management / concierge fee per car. Revenue = daily rent + charging fees (the renter keeps 100% of their Uber earnings).",
   },
 };
 
-const PRO_FORMA_REV_CAP = 5500; // ~$4,500/mo pro forma gross + buffer
+const PRO_FORMA_REV_CAP = 5500; // per car, ~$4,500/mo pro forma gross + buffer
+
+// Per-car field definitions (id suffix, label, default, step, hint)
+const CAR_FIELDS = [
+  ["dailyRent",   "Daily rent ($/day)",            150, 5,   "Rate depends on the vehicle. Renter keeps 100% of Uber earnings."],
+  ["rentalDays",  "Rental days / month",            26, 1,   "KB estimate: 25–30/mo. Captures vacancy/downtime."],
+  ["chargingMo",  "Charging fees collected ($/mo)",  0, 10,  "Billed to renter on top of daily rent."],
+  ["carNote",     "Car note ($/mo)",              1000, 10,  "Vehicle financing payment for this car."],
+  ["insurance",   "Insurance ($/mo)",              350, 10,  "Pro forma reserve ~$350/mo."],
+  ["maintenance", "Maintenance ($/mo)",            250, 10,  "Pro forma reserve ~$250/mo."],
+  ["mgmtFee",     "Sweet EV mgmt ($/mo)",            0, 10,  "DFY: ~$400/mo per car. DWY: typically $0 (self-managed)."],
+  ["permits",     "Permits ($/mo)",                  0, 10,  ""],
+  ["downPayment", "Down payment / cash invested ($)", 5000, 500, "Actual cash out of pocket for this car. Financed: down payment (~$5K min). Cash buy: full price."],
+];
 
 const $ = id => document.getElementById(id);
-const num = id => parseFloat($(id).value) || 0;
-const fmt = v => (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
+const num = v => parseFloat(v) || 0;
+const fmt = v => (v < 0 ? "-$" : "$") + Math.abs(Math.round(v)).toLocaleString("en-US");
 
 let prog = "dwy";
-let feeTouched = false;   // don't overwrite a fee the user edited
-let mgmtTouched = false;  // don't overwrite a mgmt fee the user edited
+let feeTouched = false;
+let cars = [];          // array of {name, dailyRent, ...}
+let chartByCar = null, chartCumulative = null;
 
-// Program switching
+function defaultCar(n) {
+  const c = { name: "Car " + n };
+  CAR_FIELDS.forEach(([k, , def]) => c[k] = def);
+  c.mgmtFee = PROG[prog].mgmt;
+  return c;
+}
+
+// ---- Program switching ----
 document.querySelectorAll("#progSeg button").forEach(btn => {
   btn.addEventListener("click", () => setProg(btn.dataset.prog, true));
 });
@@ -297,145 +291,261 @@ document.querySelectorAll("#progSeg button").forEach(btn => {
 function setProg(p, userClicked) {
   prog = p;
   const cfg = PROG[p];
-  document.querySelectorAll("#progSeg button").forEach(b =>
-    b.classList.toggle("active", b.dataset.prog === p));
+  document.querySelectorAll("#progSeg button").forEach(b => b.classList.toggle("active", b.dataset.prog === p));
   $("progHint").textContent = cfg.hint;
-  $("mgmtLbl").textContent = cfg.mgmtLbl;
-  $("mgmtHint").textContent = cfg.mgmtHint;
-
-  // Auto-fill program fee & management fee unless the user has typed their own
   if (userClicked || !feeTouched) { $("programFee").value = cfg.fee; feeTouched = false; }
-  if (userClicked || !mgmtTouched) { $("mgmtFee").value = cfg.mgmt; mgmtTouched = false; }
+  if (userClicked) {
+    // reset every car's mgmt fee to the program default (deliberate action)
+    cars.forEach(c => c.mgmtFee = cfg.mgmt);
+    renderCars();
+  }
+  calc();
+}
+$("programFee").addEventListener("input", () => { feeTouched = true; calc(); });
+$("taxRate").addEventListener("input", calc);
+$("clientName").addEventListener("input", calc);
 
+// ---- Car add/remove ----
+$("addCar").addEventListener("click", () => {
+  // duplicate-on-add: copy the last car, then rename
+  const base = cars.length ? JSON.parse(JSON.stringify(cars[cars.length - 1])) : defaultCar(1);
+  base.name = "Car " + (cars.length + 1);
+  cars.push(base);
+  renderCars();
+  calc();
+});
+
+function removeCar(i) {
+  if (cars.length <= 1) return;
+  cars.splice(i, 1);
+  renderCars();
   calc();
 }
 
-$("programFee").addEventListener("input", () => { feeTouched = true; });
-$("mgmtFee").addEventListener("input", () => { mgmtTouched = true; });
+// ---- Render car cards ----
+function renderCars() {
+  const wrap = $("carsWrap");
+  wrap.innerHTML = "";
+  cars.forEach((car, i) => {
+    const div = document.createElement("div");
+    div.className = "car";
+    const fieldsHtml = CAR_FIELDS.map(([k, label, , step, hint]) => `
+      <div class="field">
+        <label>${label}</label>
+        <input type="number" min="0" step="${step}" data-car="${i}" data-key="${k}" value="${car[k]}">
+        ${hint ? `<div class="hint">${hint}</div>` : ""}
+      </div>`).join("");
+    div.innerHTML = `
+      <div class="car-head">
+        <div class="car-title">
+          <span class="car-badge">Car ${i + 1}</span>
+          <input type="text" class="car-name" data-car="${i}" data-key="name" value="${car.name.replace(/"/g, "&quot;")}" placeholder="Car label">
+        </div>
+        <span class="car-net" id="carNet${i}">$0/mo</span>
+        <button class="btn-mini danger" data-remove="${i}" ${cars.length <= 1 ? "disabled style='opacity:.4;cursor:not-allowed'" : ""}>Remove</button>
+      </div>
+      <div class="grid">${fieldsHtml}</div>`;
+    wrap.appendChild(div);
+  });
+  // wire inputs
+  wrap.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", () => {
+      const i = +inp.dataset.car, k = inp.dataset.key;
+      cars[i][k] = (k === "name") ? inp.value : num(inp.value);
+      calc();
+    });
+  });
+  wrap.querySelectorAll("[data-remove]").forEach(btn => {
+    btn.addEventListener("click", () => removeCar(+btn.dataset.remove));
+  });
+}
 
-const ALL_INPUTS = ["clientName","programFee","dailyRent","rentalDays","chargingMo",
-  "carNote","insurance","maintenance","mgmtFee","permits","vehicleCost","taxRate"];
-ALL_INPUTS.forEach(id => $(id).addEventListener("input", calc));
+// ---- Per-car math ----
+function carMonthly(car) {
+  const rev = num(car.dailyRent) * num(car.rentalDays) + num(car.chargingMo);
+  const exp = num(car.carNote) + num(car.insurance) + num(car.maintenance) + num(car.mgmtFee) + num(car.permits);
+  return { rev, exp, net: rev - exp };
+}
 
 function colorClass(v) { return v >= 0 ? "pos" : "neg"; }
 function setStat(id, v) { $(id).textContent = fmt(v); $(id).className = "value " + colorClass(v); }
 
-function getExpenseItems() {
-  return [
-    ["Car Note", num("carNote")],
-    ["Insurance", num("insurance")],
-    ["Maintenance", num("maintenance")],
-    ["Sweet EV Mgmt", num("mgmtFee")],
-    ["Permits", num("permits")],
-  ];
-}
-
+// ---- Main calc ----
 function calc() {
   const name = $("clientName").value.trim();
-  $("clientLine").textContent = (name ? "Prepared for " + name + " — " : "") + PROG[prog].name + " · Illustrative projection";
+  $("clientLine").textContent = (name ? "Prepared for " + name + " — " : "") + PROG[prog].name + " · " + cars.length + (cars.length === 1 ? " car" : " cars") + " · Illustrative projection";
 
-  // Revenue: student owns the vehicle and collects daily rent + charging fees from the renter
-  const moRev = num("dailyRent") * num("rentalDays") + num("chargingMo");
+  const taxRate = Math.min(num($("taxRate").value), 100) / 100;
+  const programFee = num($("programFee").value);
 
-  const items = getExpenseItems();
-  const moExp = items.reduce((s, [, v]) => s + v, 0);
-  const moNet = moRev - moExp;
+  let fleetRev = 0, fleetExp = 0, fleetDown = 0, anyOverCap = false;
+  const perCar = cars.map(car => {
+    const m = carMonthly(car);
+    fleetRev += m.rev; fleetExp += m.exp; fleetDown += num(car.downPayment);
+    if (m.rev > PRO_FORMA_REV_CAP) anyOverCap = true;
+    return m;
+  });
 
-  const taxRate = Math.min(num("taxRate"), 100) / 100;
+  const moNet = fleetRev - fleetExp;
   const moNetAT = moNet * (1 - taxRate);
-
-  const annRev = moRev * 12;
-  const annExp = moExp * 12;
-  const annNet = moNet * 12;
-  const annNetAT = moNetAT * 12;
-
+  const annRev = fleetRev * 12, annExp = fleetExp * 12, annNet = moNet * 12, annNetAT = moNetAT * 12;
   const margin = annRev > 0 ? (annNet / annRev) * 100 : 0;
 
-  // Break-even rent/day: daily rate needed to cover all costs at current rental days
-  const days = num("rentalDays");
-  const breakEven = days > 0 ? Math.max(moExp - num("chargingMo"), 0) / days : 0;
-
-  // Capital = program fee + vehicle cost (student's total upfront outlay)
-  const upfront = num("programFee") + num("vehicleCost");
+  const upfront = programFee + fleetDown;       // program fee once + all down payments
   const roi = upfront > 0 ? (annNet / upfront) * 100 : 0;
   const payback = (upfront > 0 && moNet > 0) ? upfront / moNet : 0;
   const cum36 = moNetAT * 36 - upfront;
 
-  // Summary cards
+  // per-car net labels
+  perCar.forEach((m, i) => {
+    const el = $("carNet" + i);
+    if (el) { const netAT = m.net * (1 - taxRate); el.textContent = fmt(netAT) + "/mo"; el.className = "car-net " + colorClass(netAT); }
+  });
+
+  // summary
+  $("sCars").textContent = cars.length;
   $("sAnnRev").textContent = fmt(annRev);
   $("sAnnExp").textContent = fmt(annExp);
+  setStat("sMoNet", moNet);
   setStat("sAnnNet", annNet);
   setStat("sAnnNetAT", annNetAT);
-  setStat("sMoNet", moNet);
   $("sMargin").textContent = margin.toFixed(1) + "%";
   $("sMargin").className = "value " + colorClass(margin);
-  $("sBreakEven").textContent = fmt(breakEven);
   $("sUpfront").textContent = fmt(upfront);
   $("sROI").textContent = upfront > 0 ? roi.toFixed(1) + "%" : "—";
   $("sROI").className = "value " + (upfront > 0 ? colorClass(roi) : "");
   $("sPayback").textContent = payback > 0 ? payback.toFixed(1) : "—";
   setStat("s36mo", cum36);
 
-  // Revenue sanity guardrail — pro forma ~$4,500/mo gross per Uber Black vehicle
+  // guardrail
   const warn = $("revWarn");
-  if (moRev > PRO_FORMA_REV_CAP) {
-    warn.textContent = "Projected monthly rental income (" + fmt(moRev) + ") is above Sweet EV pro forma assumptions (~$4,500/mo gross per Uber Black vehicle). Possible at the top of the Black tier, but confirm the daily rate with Will before presenting these numbers to a student.";
+  if (anyOverCap) {
+    warn.textContent = "One or more cars project monthly rental income above Sweet EV pro forma assumptions (~$4,500/mo gross per Uber Black vehicle). Possible at the top of the Black tier, but confirm the daily rate with Will before presenting to a student.";
     warn.classList.remove("hidden");
-  } else {
-    warn.classList.add("hidden");
-  }
+  } else { warn.classList.add("hidden"); }
 
-  // Table
-  const headCols = ["Period", "Revenue", ...items.map(([l]) => l), "Total Expenses", "Net"];
-  $("tableHead").innerHTML = headCols.map(h => `<th>${h}</th>`).join("");
-
-  const moRow = ["Representative month", fmt(moRev), ...items.map(([, v]) => fmt(v)), fmt(moExp)];
-  const yrRow = ["Annual (× 12)", fmt(annRev), ...items.map(([, v]) => fmt(v * 12)), fmt(annExp)];
-  $("tableBody").innerHTML =
-    `<tr>${moRow.map(c => `<td>${c}</td>`).join("")}<td class="${colorClass(moNet)}">${fmt(moNet)}</td></tr>` +
-    `<tr class="totals">${yrRow.map(c => `<td>${c}</td>`).join("")}<td class="${colorClass(annNet)}">${fmt(annNet)}</td></tr>`;
+  // table
+  buildTable(perCar, taxRate);
+  // charts
+  drawCharts(perCar, taxRate, upfront, moNetAT);
 }
 
-// Shareable link: encode state in URL hash
-const SHARE_FIELDS = ["clientName","programFee","dailyRent","rentalDays","chargingMo",
-  "carNote","insurance","maintenance","mgmtFee","permits","vehicleCost","taxRate"];
+function buildTable(perCar, taxRate) {
+  $("tableHead").innerHTML = ["Car", "Revenue", "Total Expenses", "Net (mo, pre-tax)", "Net (mo, after-tax)", "Net (annual, after-tax)"]
+    .map(h => `<th>${h}</th>`).join("");
+  let rows = "";
+  perCar.forEach((m, i) => {
+    const netAT = m.net * (1 - taxRate);
+    rows += `<tr>
+      <td>${(cars[i].name || ("Car " + (i + 1)))}</td>
+      <td>${fmt(m.rev)}</td>
+      <td>${fmt(m.exp)}</td>
+      <td class="${colorClass(m.net)}">${fmt(m.net)}</td>
+      <td class="${colorClass(netAT)}">${fmt(netAT)}</td>
+      <td class="${colorClass(netAT)}">${fmt(netAT * 12)}</td>
+    </tr>`;
+  });
+  const fRev = perCar.reduce((s, m) => s + m.rev, 0);
+  const fExp = perCar.reduce((s, m) => s + m.exp, 0);
+  const fNet = fRev - fExp, fNetAT = fNet * (1 - taxRate);
+  rows += `<tr class="fleet">
+    <td>Fleet — monthly</td>
+    <td>${fmt(fRev)}</td><td>${fmt(fExp)}</td>
+    <td class="${colorClass(fNet)}">${fmt(fNet)}</td>
+    <td class="${colorClass(fNetAT)}">${fmt(fNetAT)}</td>
+    <td class="${colorClass(fNetAT)}">${fmt(fNetAT * 12)}</td></tr>`;
+  rows += `<tr class="totals">
+    <td>Fleet — annual (× 12)</td>
+    <td>${fmt(fRev * 12)}</td><td>${fmt(fExp * 12)}</td>
+    <td class="${colorClass(fNet)}">${fmt(fNet * 12)}</td>
+    <td class="${colorClass(fNetAT)}">${fmt(fNetAT * 12)}</td>
+    <td class="${colorClass(fNetAT)}">${fmt(fNetAT * 12)}</td></tr>`;
+  $("tableBody").innerHTML = rows;
+}
 
+function drawCharts(perCar, taxRate, upfront, fleetMoNetAT) {
+  const labels = cars.map((c, i) => c.name || ("Car " + (i + 1)));
+  const netATs = perCar.map(m => Math.round(m.net * (1 - taxRate)));
+  const fleetNetAT = netATs.reduce((s, v) => s + v, 0);
+
+  // Chart 1: monthly net by car + fleet total
+  const barLabels = labels.concat(["Fleet total"]);
+  const barData = netATs.concat([fleetNetAT]);
+  const barColors = barData.map((v, i) =>
+    i === barData.length - 1 ? "#111827" : (v >= 0 ? "#16a34a" : "#dc2626"));
+
+  if (chartByCar) chartByCar.destroy();
+  chartByCar = new Chart($("chartByCar"), {
+    type: "bar",
+    data: { labels: barLabels, datasets: [{ label: "Monthly net (after-tax)", data: barData, backgroundColor: barColors, borderRadius: 4 }] },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.parsed.y) + "/mo" } } },
+      scales: { y: { ticks: { callback: v => "$" + v.toLocaleString() } } }
+    }
+  });
+
+  // Chart 2: cumulative fleet net over 36 months (after-tax), starting at -upfront
+  const months = [], cum = [];
+  for (let mo = 0; mo <= 36; mo++) { months.push(mo); cum.push(Math.round(-upfront + fleetMoNetAT * mo)); }
+  if (chartCumulative) chartCumulative.destroy();
+  chartCumulative = new Chart($("chartCumulative"), {
+    type: "line",
+    data: { labels: months, datasets: [{
+      label: "Cumulative net (after-tax)", data: cum,
+      borderColor: "#111827", backgroundColor: "rgba(17,24,39,0.06)",
+      fill: true, tension: 0.15, pointRadius: 0
+    }] },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { title: items => "Month " + items[0].label, label: c => fmt(c.parsed.y) } }
+      },
+      scales: {
+        x: { title: { display: true, text: "Month" } },
+        y: { ticks: { callback: v => "$" + v.toLocaleString() } }
+      }
+    }
+  });
+}
+
+// ---- Shareable link (encode cars JSON in hash) ----
 function copyLink() {
-  const params = new URLSearchParams();
-  params.set("prog", prog);
-  SHARE_FIELDS.forEach(f => params.set(f, $(f).value));
-  const url = location.href.split("#")[0] + "#" + params.toString();
-  const done = () => {
-    const msg = $("copyMsg");
-    msg.style.display = "inline";
-    setTimeout(() => msg.style.display = "none", 2000);
-  };
+  const state = { prog, programFee: $("programFee").value, taxRate: $("taxRate").value, clientName: $("clientName").value, cars };
+  const url = location.href.split("#")[0] + "#" + encodeURIComponent(JSON.stringify(state));
+  const done = () => { const msg = $("copyMsg"); msg.style.display = "inline"; setTimeout(() => msg.style.display = "none", 2000); };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
-  } else {
-    fallbackCopy(url, done);
-  }
+  } else { fallbackCopy(url, done); }
 }
-
 function fallbackCopy(text, done) {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand("copy");
-  document.body.removeChild(ta);
-  done();
+  const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+  ta.select(); document.execCommand("copy"); document.body.removeChild(ta); done();
 }
 
-// Restore state from URL hash
-(function restore() {
-  if (!location.hash || location.hash.length < 2) { setProg("dwy", false); return; }
-  const params = new URLSearchParams(location.hash.slice(1));
-  // mark touched so program switch doesn't clobber shared values
-  if (params.has("programFee")) feeTouched = true;
-  if (params.has("mgmtFee")) mgmtTouched = true;
-  SHARE_FIELDS.forEach(f => { if (params.has(f)) $(f).value = params.get(f); });
-  setProg(params.get("prog") || "dwy", false);
+// ---- Restore / init ----
+(function init() {
+  let restored = false;
+  if (location.hash && location.hash.length > 2) {
+    try {
+      const state = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+      if (state && Array.isArray(state.cars) && state.cars.length) {
+        prog = state.prog === "dfy" ? "dfy" : "dwy";
+        cars = state.cars;
+        $("programFee").value = state.programFee != null ? state.programFee : PROG[prog].fee;
+        $("taxRate").value = state.taxRate != null ? state.taxRate : 0;
+        $("clientName").value = state.clientName || "";
+        feeTouched = true;
+        restored = true;
+      }
+    } catch (e) { /* ignore malformed hash */ }
+  }
+  if (!restored) cars = [defaultCar(1)];
+  document.querySelectorAll("#progSeg button").forEach(b => b.classList.toggle("active", b.dataset.prog === prog));
+  $("progHint").textContent = PROG[prog].hint;
+  renderCars();
+  calc();
 })();
 </script>
 </body>
