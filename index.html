@@ -226,7 +226,7 @@
     <strong>Illustrative projection — not a guarantee.</strong> All figures are targeted, projected, and illustrative estimates based on user inputs and Sweet EV Rides pro forma assumptions. Actual rental income, expenses, and returns vary and are never guaranteed. VIP coaching programs (DWY/DFY) are educational offers; the student owns and operates their own vehicle(s) and keeps their own net. Program pricing and fees are subject to change. This document is not financial or investment advice.
   </div>
 
-  <footer>Sweet EV Rides — VIP Student P&amp;L Model · v3.2</footer>
+  <footer>Sweet EV Rides — VIP Student P&amp;L Model · v3.3</footer>
 
 </div>
 
@@ -248,13 +248,13 @@ const PROG = {
 
 const PRO_FORMA_REV_CAP = 5500; // per car, ~$4,500/mo pro forma gross + buffer
 
-// Vehicle presets — ESTIMATES ONLY (editable). Confirm exact rates with Will.
+// Vehicle presets — provided rates (editable per car).
 // To add a vehicle: add an entry here and its key to VEH_ORDER.
 const VEHICLES = {
   custom:   { label: "Custom / other",        preset: null },
-  tesla_x:  { label: "Tesla Model X (EV)",     preset: { dailyRent: 160, carNote: 1100, insurance: 320, maintenance: 120 } },
-  tahoe:    { label: "Chevy Tahoe",            preset: { dailyRent: 130, carNote: 900,  insurance: 260, maintenance: 250 } },
-  suburban: { label: "Chevy Suburban",         preset: { dailyRent: 135, carNote: 950,  insurance: 260, maintenance: 275 } },
+  tesla_x:  { label: "Tesla Model X (EV)",     preset: { dailyRent: 115, carNote: 750, insurance: 200, maintenance: 150 } },
+  tahoe:    { label: "Chevy Tahoe",            preset: { dailyRent: 130, carNote: 900, insurance: 200, maintenance: 200 } },
+  suburban: { label: "Chevy Suburban",         preset: { dailyRent: 135, carNote: 950, insurance: 200, maintenance: 200 } },
 };
 const VEH_ORDER = ["custom", "tesla_x", "tahoe", "suburban"];
 
@@ -352,7 +352,7 @@ function renderCars() {
       <div class="field" style="max-width:300px; margin-bottom:14px;">
         <label>Vehicle</label>
         <select class="veh-select" data-car="${i}">${vehOpts}</select>
-        <div class="hint">Auto-fills rent, car note, insurance &amp; maintenance with editable estimates. Confirm exact rates with Will.</div>
+        <div class="hint">Auto-fills rent, car note, insurance &amp; maintenance for the selected vehicle. All values editable.</div>
       </div>
       <div class="grid">${fieldsHtml}</div>`;
     wrap.appendChild(div);
